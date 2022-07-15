@@ -9,10 +9,7 @@ import javax.sql.DataSource
 import com.zaxxer.hikari.HikariDataSource
 
 
-
-
-
-class ConnectionTest: Log {
+internal class ConnectionTest: Log {
 
   @Test
   fun driverManager(){
