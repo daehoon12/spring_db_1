@@ -13,6 +13,7 @@ class MemberServiceV2(
   private val memberRepository: MemberRepositoryV2,
 ) :Log{
 
+  @Throws(SQLException::class)
   fun accountTransfer(fromId: String, toId: String, money: Int){
     val con = dataSource.connection
     try {
@@ -25,6 +26,16 @@ class MemberServiceV2(
     }finally {
       release(con)
     }
+  }
+
+  @Throws(SQLException::class)
+  private fun bizLogic(con: Connection, fromId: String, toId: String, money: Int){
+    val fromMember = memberRepository.findById(con, fromId)
+    val toMember = memberRepository.findById(con, toId)
+
+    memberRepository.update(con, fromId, fromMember.money - money)
+    validation(toMember)
+    memberRepository.update(con, toId, fromMember.money + money)
   }
 
   private fun validation(toMember: Member){
@@ -42,13 +53,5 @@ class MemberServiceV2(
     }
   }
 
-  @Throws(SQLException::class)
-  private fun bizLogic(con: Connection, fromId: String, toId: String, money: Int){
-    val fromMember = memberRepository.findById(con, fromId)
-    val toMember = memberRepository.findById(con, toId)
 
-    memberRepository.update(con, fromId, fromMember.money - money)
-    validation(toMember)
-    memberRepository.update(con, toId, fromMember.money + money)
-  }
 }

@@ -2,11 +2,13 @@ package hello.jbdc.service
 
 import hello.jbdc.domain.Member
 import hello.jbdc.repository.MemberRepositoryV1
+import java.sql.SQLException
+import kotlin.jvm.Throws
 
 class MemberServiceV1(
   private val memberRepository: MemberRepositoryV1
 ) {
-
+  @Throws(SQLException::class)
   fun accountTransfer(fromId: String, toId: String, money: Int){
     val fromMember = memberRepository.findById(fromId)
     val toMember = memberRepository.findById(toId)
