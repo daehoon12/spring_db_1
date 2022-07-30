@@ -2,15 +2,20 @@ package hello.jbdc.repository
 
 import hello.jbdc.Log
 import hello.jbdc.domain.Member
+import org.springframework.jdbc.datasource.DataSourceUtils
 import org.springframework.jdbc.support.JdbcUtils
 import java.sql.*
 import javax.sql.DataSource
+import kotlin.jvm.Throws
 
+/*
+* 트랜잭션 매니저
+* DataSourceUtils.getConnection()
+* DataSourceUtils.releaseConnection()*/
 
-class MemberRepositoryV1(
-  private val dataSource: DataSource
+class MemberRepositoryV3(
+  private val dataSource: DataSource,
 ):Log {
-
 
   fun save(member: Member): Member{
     val sql: String = "insert into member(member_id, money) values (?, ?)"
@@ -35,6 +40,7 @@ class MemberRepositoryV1(
 
   }
 
+  @Throws(SQLException::class)
   fun findById(memberId: String): Member{
     val sql = "select * from member where member_id = ?"
 
@@ -61,13 +67,13 @@ class MemberRepositoryV1(
       }
     } catch (e: SQLException){
         logger.error("db error", e)
-      throw e
+        throw e
     } finally {
-      close(con, pstmt, rs);
+      close(con, pstmt, null)
     }
-
   }
 
+  @Throws(SQLException::class)
   fun update(memberId: String, money: Int){
     val sql = "update member set money=? where member_id=?"
 
@@ -90,6 +96,8 @@ class MemberRepositoryV1(
     }
   }
 
+
+  @Throws(SQLException::class)
   fun delete(memberId: String){
     val sql = "delete from member where member_id=?"
 
@@ -107,13 +115,14 @@ class MemberRepositoryV1(
         logger.error("db error", e)
         throw e
     } finally {
-      close(con, pstmt, null)
+      close(con, pstmt, null);
     }
   }
 
 
   private fun getConnection(): Connection {
-    val con = dataSource.connection
+    // 주의! 트랜잭션 동기화를 사용하려면 DataSourceUtils를 사용해야 한다.
+    val con = DataSourceUtils.getConnection(dataSource)
     logger.info("get connection={}, class={}", con, con.javaClass)
     return con
   }
@@ -121,6 +130,8 @@ class MemberRepositoryV1(
   private fun close(con: Connection?, stmt: Statement?, rs: ResultSet?) {
     JdbcUtils.closeResultSet(rs);
     JdbcUtils.closeStatement(stmt);
-    JdbcUtils.closeConnection(con);
+    // 주의! 트랜잭션 동기화를 사용하려면 DataSourceUtil을 사용해야 합니다.
+    DataSourceUtils.releaseConnection(con, dataSource)
+
   }
 }

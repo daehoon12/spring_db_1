@@ -9,12 +9,9 @@ import kotlin.jvm.Throws
 
 
 class MemberRepositoryV2(
-  dataSource: DataSource,
+  private val dataSource: DataSource
 ):Log {
-   private val dataSource: DataSource
-  init {
-    this.dataSource = dataSource
-  }
+
 
   fun save(member: Member): Member{
     val sql: String = "insert into member(member_id, money) values (?, ?)"
